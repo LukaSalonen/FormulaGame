@@ -1,0 +1,11 @@
+
+
+Car, driver, Track luokat sekä IO ja RaceUI objektit lisätty. Ne eivät kyllä vielä tee oikein mitään. 
+
+Koska luokat ovat niin kesken ei testaustakaan ole vielä tapahtunut.
+
+Hankalia virheitä ei ole ollut.
+
+Aikaa on mennyt noin 2 tuntia, suurin osa gitin kanssa taisteluun.
+
+Aikataulun puolesta olen jonkin verran jäljessä mutta onneksi jätin siihen sen verran löysää, että ei ole vielä hätää.
