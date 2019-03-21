@@ -10,3 +10,7 @@ object Obstacle extends SquareType {
 object Driveway extends SquareType {
   val canPassThrough = true
 }
+
+object GoalLine extends SquareType {
+  
+}
