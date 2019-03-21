@@ -1,7 +1,20 @@
 package race
 
-object RaceUI extends {
+import scalafx.Includes._
+import scalafx.application._
+import scalafx.stage._
+import scalafx.scene.Scene
+import scalafx.scene.layout._
+
+object RaceUI extends JFXApp {
   //TODO
-  val xc = 1
-  println("moro")
+  stage = new JFXApp.PrimaryStage {
+    title = "Test window pls ignore"
+    width = 800
+    height = 600
+
+    scene = new Scene(new javafx.scene.Scene(root))
+  }
+
+  lazy val root = new GridPane {}
 }
