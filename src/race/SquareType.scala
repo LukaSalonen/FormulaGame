@@ -14,3 +14,7 @@ object Driveway extends SquareType {
 object GoalLine extends SquareType {
   
 }
+
+object StaringPlace extends SquareType {
+  
+}
