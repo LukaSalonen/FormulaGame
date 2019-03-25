@@ -1,20 +1,24 @@
 package race
 
-abstract class SquareType 
-
-
-object Obstacle extends SquareType {
-  val canPassThrough = false
+abstract class SquareType {
+  var carHere: Option[Car] = None
+  val canPassThrough: Boolean = true
 }
 
-object Driveway extends SquareType {
-  val canPassThrough = true
+
+class Obstacle extends SquareType {
+  override val canPassThrough = false
+  override def toString = "Obstacle"
 }
 
-object GoalLine extends SquareType {
-  
+class Driveway extends SquareType {
+  override def toString = "Driveway"
 }
 
-object StaringPlace extends SquareType {
-  
+class GoalLine extends SquareType { 
+  override def toString = "GoalLine"
+}
+
+class StartingPlace extends SquareType {
+  override def toString = "StartingPlace"
 }
