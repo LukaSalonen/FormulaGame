@@ -5,7 +5,6 @@ abstract class SquareType {
   def canPassThrough: Boolean = carHere.isEmpty
 }
 
-
 class Obstacle extends SquareType {
   override val canPassThrough = false
   override def toString = "Obstacle"

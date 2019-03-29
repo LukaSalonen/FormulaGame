@@ -1,14 +1,18 @@
 package race
 
-class Track(private val raceTrack: Array[Array[SquareType]], val cars: Array[Car]) {
+class Track(val raceTrack: Array[Array[SquareType]], val cars: Array[Car]) {
 
+  this.initializeTrack
+  
+  // Track the dimensions of the track
   val width = raceTrack.head.length
   val height = raceTrack.length
 
+  // where the cars where before their last move
+  // Used for calculating the next possible moves
   val previousLocation: Array[Coordinates] = Array.ofDim[Coordinates](cars.length)
 
-  placeCarsOnStart
-
+  // returns the positions where the given player can move
   def moveOptions(playerIndex: Int): Array[Coordinates] = {
 
     var result = Array.ofDim[Coordinates](9)
@@ -42,6 +46,7 @@ class Track(private val raceTrack: Array[Array[SquareType]], val cars: Array[Car
     result
   }
 
+  // Gives coordinates of a given players car
   def locationOfCar(playerIndex: Int): Coordinates = {
     var result = new Coordinates(-1, -1)
     for (i <- 0 until this.height) {
@@ -55,6 +60,7 @@ class Track(private val raceTrack: Array[Array[SquareType]], val cars: Array[Car
 
   def squareAtPos(pos: Coordinates) = raceTrack(pos.y)(pos.x)
 
+  // moves the given player to the target position
   def moveCar(playerIndex: Int, target: Coordinates) = {
     val currentPos = locationOfCar(playerIndex)
     if (!currentPos.equals(target)) {
@@ -67,6 +73,8 @@ class Track(private val raceTrack: Array[Array[SquareType]], val cars: Array[Car
     }
   }
 
+  // Finds the closest StartingPlace square within 4 squares
+  // used for calculating moveOptions for a car on its first turn
   private def closestGoalLine(pos: Coordinates): Option[Coordinates] = {
     var result: Option[Coordinates] = None
     for (i <- 1 to 5) {
@@ -80,7 +88,8 @@ class Track(private val raceTrack: Array[Array[SquareType]], val cars: Array[Car
     result
   }
 
-  private def placeCarsOnStart = {
+  // Sets cars to random StartingPlaces and sets their previousLocations to their starting ones.
+  private def initializeTrack = {
 
     var startingSquares = scala.collection.mutable.Buffer[SquareType]()
 
@@ -104,6 +113,7 @@ class Track(private val raceTrack: Array[Array[SquareType]], val cars: Array[Car
     }
   }
 
+  // Gets you coordinates of a certain square
   private def coordinatesOfSquare(square: SquareType): Coordinates = {
     var result = new Coordinates(-1, -1)
     for (i <- raceTrack.indices) {
@@ -114,6 +124,7 @@ class Track(private val raceTrack: Array[Array[SquareType]], val cars: Array[Car
     result
   }
 
+  //For testing purposes
   override def toString = {
     var result = ""
 
