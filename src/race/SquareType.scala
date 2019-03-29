@@ -2,7 +2,7 @@ package race
 
 abstract class SquareType {
   var carHere: Option[Car] = None
-  val canPassThrough: Boolean = true
+  def canPassThrough: Boolean = carHere.isEmpty
 }
 
 
