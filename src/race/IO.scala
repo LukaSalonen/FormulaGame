@@ -1,14 +1,137 @@
 package race
 
-object IO {
+import java.io.BufferedReader
+import java.io.BufferedWriter
+import java.io.FileNotFoundException
+import java.io.FileReader
+import java.io.FileWriter
+import java.io.IOException
+import java.io.PrintWriter
+import scala.collection.mutable.Buffer
+import java.io.File
 
-  def readDrivers = ??? //TODO
+object IO extends App {
 
-  def readTracks = ??? //TODO
+  /*
+  //this.readDrivers.foreach(println)
+  try {
+    var test = readTrack("paris.txt")
+    var tracker = test._2
+    tracker.foreach(_.foreach(println))
+  } catch {
+    case e:IOException => println("aiempi catch!")
+  }
+  */
+  availableTracks.foreach(println)
 
-  def writePlayers = ??? //TODO
+  def readDrivers: Array[String] = {
 
-  def writeTracks = ??? //TODO
+    val result = Buffer[String]()
+
+    try {
+      val fileIn = new FileReader("data/drivers.txt")
+      val linesIn = new BufferedReader(fileIn)
+
+      try {
+
+        var currentLine = linesIn.readLine()
+
+        while (currentLine != null) {
+          result += currentLine
+          currentLine = linesIn.readLine()
+        }
+      } finally {
+        fileIn.close()
+        linesIn.close()
+      }
+    } catch {
+      case e: FileNotFoundException => println("File was not found.")
+      case e: IOException           => println("Something went wrong while reading the drivers file.")
+    }
+    result.toArray
+  }
+
+  def writeNewDriver(name: String): Unit = {
+    try {
+      val fileOut = new FileWriter("data/drivers.txt", true)
+      val bufferedWriter = new BufferedWriter(fileOut)
+      val printWriter = new PrintWriter(bufferedWriter)
+      try {
+
+        printWriter.println(name)
+        printWriter.flush()
+
+      } finally {
+        fileOut.close()
+        bufferedWriter.close()
+        printWriter.close()
+      }
+    } catch {
+      case e: IOException => println("Something went wrong while writing the new player.")
+    }
+  }
+
+  def readTrack(fileName: String): (String, Array[Array[Char]], Array[Int]) = {
+
+    var trackName = "default"
+    var track = Buffer[Buffer[Char]]()
+    var topLaps = Buffer[Int]()
+
+    try {
+      val fr = new FileReader("data/tracks/" + fileName)
+      val br = new BufferedReader(fr)
+
+      try {
+        var currentLine = br.readLine()
+
+        while (currentLine != null) {
+          currentLine match {
+            case s if s.contains("nameOfTrack") => trackName = s.split(":").last
+            case s if s.contains("lapTime")     => topLaps += s.split(":").last.toInt
+            case s if s.forall(a => a == '#' || a == '¤' || a == 'g' || a == 's') => {
+              track += s.toBuffer
+            }
+            case _ =>
+          }
+          currentLine = br.readLine()
+        }
+
+      } finally {
+        fr.close()
+        br.close()
+      }
+    } catch {
+      case e: FileNotFoundException => println("File was not found.")
+      case e: IOException           => println("Something went wrong while reading the track file.")
+    }
+
+    if (trackName == "default") throw new IOException
+    else if (topLaps.length != 3) throw new IOException
+    else if (!track.head.isEmpty && track.forall(x => x.length == track.head.length)) throw new IOException
+    else {
+      
+      val topLapsN = topLaps.toArray
+      val trackN = Array.ofDim[Char](track.length, track.head.length)
+      
+      for(i <- track.indices) {
+        trackN(i) = track(i).toArray
+      }
+      
+      (trackName, trackN, topLapsN)
+    }
+
+  }
+  
+  def availableTracks: Array[String] = {
+    val result = Buffer[String]()
+    val cwd = new File("./data/tracks")
+    val listing = cwd.listFiles()
+    
+    for(i <- listing) {
+      if(i.isFile  && i.getName.contains(".txt")) result += i.getName
+    }
+    result.toArray
+  }
 
   val testTrack1: Array[Array[Char]] = {
     Array(
