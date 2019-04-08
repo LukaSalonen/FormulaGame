@@ -5,7 +5,8 @@ class Race {
   // Testing code for testing purposes
   val testCar = new Car(new Driver("Luka"))
   val testCar2 = new Car(new Driver("Olli"))
-  private val track = new Track(buildMap(IO.testTrack1), Array(testCar, testCar2))
+  private val track = new Track("Test Track", buildMap(IO.testTrack1), Array(testCar, testCar2))
+  //buildDrivers(IO.readDrivers).foreach(println)
 
   //Moves the car whose turn it is to the given position
   //Also gives the turn to the next Player
@@ -39,5 +40,7 @@ class Race {
     }
     result
   }
+  
+  def buildDrivers(names: Array[String]): Array[Driver] = names.map(new Driver(_))
 
 }

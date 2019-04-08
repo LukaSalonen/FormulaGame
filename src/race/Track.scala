@@ -1,6 +1,6 @@
 package race
 
-class Track(val raceTrack: Array[Array[SquareType]], val cars: Array[Car]) {
+class Track(val nameOfTrack: String, val raceTrack: Array[Array[SquareType]], val cars: Array[Car]) {
 
   this.initializeTrack
   
