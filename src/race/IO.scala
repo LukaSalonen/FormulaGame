@@ -10,19 +10,8 @@ import java.io.PrintWriter
 import scala.collection.mutable.Buffer
 import java.io.File
 
-object IO extends App {
+object IO {
 
-  /*
-  //this.readDrivers.foreach(println)
-  try {
-    var test = readTrack("paris.txt")
-    var tracker = test._2
-    tracker.foreach(_.foreach(println))
-  } catch {
-    case e:IOException => println("aiempi catch!")
-  }
-  */
-  availableTracks.foreach(println)
 
   def readDrivers: Array[String] = {
 
@@ -132,7 +121,8 @@ object IO extends App {
     }
     result.toArray
   }
-
+  
+  
   val testTrack1: Array[Array[Char]] = {
     Array(
       Array('#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#'),

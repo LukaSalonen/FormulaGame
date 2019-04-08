@@ -80,7 +80,7 @@ object RaceUI extends JFXApp {
 
   stage = new JFXApp.PrimaryStage {
     title = "Formula Game"
-    scene = new Scene(1920, 1080) {
+    scene = new Scene(1980, 1080) {
       val menuBar = new MenuBar
       val fileMenu = new Menu("File")
       val testItem = new MenuItem("test stuff")
@@ -108,17 +108,6 @@ object RaceUI extends JFXApp {
       testButton.alignmentInParent_=(Pos.CENTER)
       //gridPane.add(testBox, 0, 0)
       //gridPane.add(testBox2, 0, 1)
-
-      val anchorPane = new AnchorPane
-      val leftPane = new BorderPane
-      val rightPane = new BorderPane
-      val canvas = new GridPane
-      val stackPane = new StackPane
-      stackPane.alignment = Pos.CENTER_LEFT
-      canvas.add(testBox, 0, 0)
-
-      rightPane.center = gridPane
-      leftPane.center = canvas
 
       gridPane.alignment_=(Pos.CENTER)
       val rootPane = new BorderPane

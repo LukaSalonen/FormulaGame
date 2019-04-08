@@ -1,12 +1,13 @@
 package race
 
+import IO._
+
 class Race {
 
   // Testing code for testing purposes
   val testCar = new Car(new Driver("Luka"))
   val testCar2 = new Car(new Driver("Olli"))
   private val track = new Track("Test Track", buildMap(IO.testTrack1), Array(testCar, testCar2))
-  //buildDrivers(IO.readDrivers).foreach(println)
 
   //Moves the car whose turn it is to the given position
   //Also gives the turn to the next Player
@@ -26,7 +27,7 @@ class Race {
 
   // Converts a two-dimensional array of Char to a two-dimensional array of SquareType
   def buildMap(source: Array[Array[Char]]): Array[Array[SquareType]] = {
-    val result = Array.ofDim[SquareType](source.length, source.head.length)
+    val result = Array.ofDim[SquareType](source.size, source.head.length)
     for (i <- result.indices) {
       for (j <- result.head.indices) {
         source(i)(j) match {
@@ -40,6 +41,7 @@ class Race {
     }
     result
   }
+  
   
   def buildDrivers(names: Array[String]): Array[Driver] = names.map(new Driver(_))
 

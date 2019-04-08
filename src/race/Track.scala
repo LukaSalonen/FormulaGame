@@ -2,8 +2,7 @@ package race
 
 class Track(val nameOfTrack: String, val raceTrack: Array[Array[SquareType]], val cars: Array[Car]) {
 
-  this.initializeTrack
-  
+
   // Track the dimensions of the track
   val width = raceTrack.head.length
   val height = raceTrack.length
@@ -12,6 +11,9 @@ class Track(val nameOfTrack: String, val raceTrack: Array[Array[SquareType]], va
   // Used for calculating the next possible moves
   val previousLocation: Array[Coordinates] = Array.ofDim[Coordinates](cars.length)
 
+  //Sets cars up for the game
+  this.initializeTrack
+  
   // returns the positions where the given player can move
   def moveOptions(playerIndex: Int): Array[Coordinates] = {
 
@@ -91,6 +93,7 @@ class Track(val nameOfTrack: String, val raceTrack: Array[Array[SquareType]], va
   // Sets cars to random StartingPlaces and sets their previousLocations to their starting ones.
   private def initializeTrack = {
 
+    
     var startingSquares = scala.collection.mutable.Buffer[SquareType]()
 
     for (i <- raceTrack.indices) {
@@ -100,14 +103,18 @@ class Track(val nameOfTrack: String, val raceTrack: Array[Array[SquareType]], va
       }
     }
     require(startingSquares.length >= cars.length)
-    if (startingSquares.length < cars.length) println("placingCarsOnStart kusee") //TODO throw exception
+    if (startingSquares.length < cars.length) println("placingCarsOnStart kusee") //TODO exception
 
     else {
       startingSquares = scala.util.Random.shuffle(startingSquares)
-
       for (k <- cars.indices) {
         startingSquares(k).carHere = Some(cars(k))
+        println(2)
+        println(previousLocation)
+        val test = coordinatesOfSquare(startingSquares(k))
+        println(test)
         previousLocation(k) = coordinatesOfSquare(startingSquares(k))
+        println("juu")
       }
 
     }
