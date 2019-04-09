@@ -1,7 +1,6 @@
 package race
 
-class LapTime(driver: Driver, nameOfTrack: String) {
-  private var turnsTaken = 0
+class LapTime(val driver: Driver, val nameOfTrack: String, private var turnsTaken: Int = 0) {
   
   def incrementTurns = turnsTaken += 1
   def getTurns = turnsTaken

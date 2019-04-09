@@ -33,6 +33,9 @@ object RaceUI extends JFXApp {
   }
 
   def buildGridLayout(gp: GridPane, rp: Pane): Unit = {
+
+    val options = race.nextMovementOptions
+
     for (i <- race.getMap.indices) {
       for (j <- race.getMap(i).indices) {
         val current = race.getMap(i)(j)
@@ -58,19 +61,26 @@ object RaceUI extends JFXApp {
           circle.alignmentInParent_=(Pos.CENTER)
           gp.add(circle, j, i)
         }
-        val options = race.nextMovementOptions
-        for (k <- options) {
-          if (k.x == j && k.y == i) {
-            val circle = Circle(2)
-            circle.radius <== (rp.width / (4 * race.getMap.head.size))
-            circle.fill = Color.BLUEVIOLET
-            circle.alignmentInParent_=(Pos.CENTER)
-            gp.add(circle, j, i)
 
-            circle.onMouseClicked = (me: MouseEvent) => {
-              race.nextMove(new Coordinates(j, i))
-              gp.children_=(new Pane)
-              buildGridLayout(gp, rp)
+        if (options.isEmpty) {
+          
+          val last = race.nextCar // TODO make the car move to the obstacel it crashed into
+          race.nextMove(new Coordinates(j,i))
+          last.isCrashed = true
+        } else if (!race.nextCar.isCrashed) {
+          for (k <- options) {
+            if (k.x == j && k.y == i) {
+              val circle = Circle(2)
+              circle.radius <== (rp.width / (4 * race.getMap.head.size))
+              circle.fill = Color.BLUEVIOLET
+              circle.alignmentInParent_=(Pos.CENTER)
+              gp.add(circle, j, i)
+
+              circle.onMouseClicked = (me: MouseEvent) => {
+                race.nextMove(new Coordinates(j, i))
+                gp.children_=(new Pane)
+                buildGridLayout(gp, rp)
+              }
             }
           }
         }
@@ -80,7 +90,7 @@ object RaceUI extends JFXApp {
 
   stage = new JFXApp.PrimaryStage {
     title = "Formula Game"
-    scene = new Scene(1980, 1080) {
+    scene = new Scene(1200, 800) {
       val menuBar = new MenuBar
       val fileMenu = new Menu("File")
       val testItem = new MenuItem("test stuff")
