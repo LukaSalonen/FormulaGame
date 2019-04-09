@@ -1,7 +1,8 @@
 package race
 
-class Track(val nameOfTrack: String, val raceTrack: Array[Array[SquareType]], val cars: Array[Car]) {
+import scala.math._
 
+class Track(val nameOfTrack: String, val raceTrack: Array[Array[SquareType]], val cars: Array[Car]) {
 
   // Track the dimensions of the track
   val width = raceTrack.head.length
@@ -13,10 +14,9 @@ class Track(val nameOfTrack: String, val raceTrack: Array[Array[SquareType]], va
 
   //Sets cars up for the game
   this.initializeTrack
-  
+
   // returns the positions where the given player can move
   def moveOptions(playerIndex: Int): Array[Coordinates] = {
-
     var result = Array.ofDim[Coordinates](9)
     val currentLocation = locationOfCar(playerIndex)
     val lastLocation = previousLocation(playerIndex)
@@ -44,7 +44,7 @@ class Track(val nameOfTrack: String, val raceTrack: Array[Array[SquareType]], va
     result(8) = nextCenter.addToXY(1, 1)
 
     result = result.filter(a => squareAtPos(a).canPassThrough) //index out of bounds TODO
-    
+
     result
   }
 
@@ -58,6 +58,55 @@ class Track(val nameOfTrack: String, val raceTrack: Array[Array[SquareType]], va
       }
     }
     result
+  }
+
+  // Returns a car whose last move crossed the finish line or none if no car did.
+  def lastMoveWon(carIndex: Int): Boolean = {
+
+    val goalLine = findGoal.map(coordinatesOfSquare(_))
+    var goalPoints = (new Coordinates(goalLine.minBy(_.x).x, goalLine.minBy(_.y).y), new Coordinates(goalLine.maxBy(_.x).x, goalLine.maxBy(_.y).y))
+    val carPoints = (previousLocation(carIndex), locationOfCar(carIndex))
+
+    def onSegment(p: Coordinates, q: Coordinates, r: Coordinates): Boolean = {
+      (q.x <= max(p.x, r.x) && q.x >= min(p.x, r.x) && q.y <= max(p.y, r.y) && q.y >= min(p.y, r.y))
+    }
+    
+    def orientation(p: Coordinates, q: Coordinates, r: Coordinates): Int = {
+      val value = (q.y - p.y) * (r.x - q.x) - (q.x - p.x) * (r.y - q.y)
+      if(value == 0) 0
+      else if(value > 0) 1
+      else 2
+    }
+    
+    def doIntersect(p1: Coordinates, q1: Coordinates, p2: Coordinates, q2: Coordinates): Boolean = {
+      val o1 = orientation(p1, q1, p2) 
+      val o2 = orientation(p1, q1, q2)
+      val o3 = orientation(p2, q2, p1)
+      val o4 = orientation(p2, q2, q1)
+      
+      if (o1 != o2 && o3 != o4) true
+      else if(o1 == 0 && onSegment(p1, p2, q1)) true
+      else if(o2 == 0 && onSegment(p1, q2, q1)) true
+      else if(o3 == 0 && onSegment(p2, p1, q2)) true
+      else if(o4 == 0 && onSegment(p2, q1, q2)) true
+      else false
+    }
+
+    doIntersect(carPoints._1, carPoints._2, goalPoints._1, goalPoints._2)
+  }
+
+  def findGoal: Array[SquareType] = {
+
+    val result = scala.collection.mutable.Buffer[SquareType]()
+
+    for (i <- 0 until this.height) {
+      for (j <- 0 until this.width) {
+        val current = raceTrack(i)(j)
+        if (current.toString == "GoalLine") result += current
+      }
+    }
+
+    result.toArray
   }
 
   def squareAtPos(pos: Coordinates) = raceTrack(pos.y)(pos.x)
@@ -93,7 +142,6 @@ class Track(val nameOfTrack: String, val raceTrack: Array[Array[SquareType]], va
   // Sets cars to random StartingPlaces and sets their previousLocations to their starting ones.
   private def initializeTrack = {
 
-    
     var startingSquares = scala.collection.mutable.Buffer[SquareType]()
 
     for (i <- raceTrack.indices) {
@@ -109,12 +157,8 @@ class Track(val nameOfTrack: String, val raceTrack: Array[Array[SquareType]], va
       startingSquares = scala.util.Random.shuffle(startingSquares)
       for (k <- cars.indices) {
         startingSquares(k).carHere = Some(cars(k))
-        println(2)
-        println(previousLocation)
         val test = coordinatesOfSquare(startingSquares(k))
-        println(test)
         previousLocation(k) = coordinatesOfSquare(startingSquares(k))
-        println("juu")
       }
 
     }
