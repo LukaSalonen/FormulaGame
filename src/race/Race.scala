@@ -6,8 +6,7 @@ class Race {
   val testCar = new Car(new Driver("Luka"))
   val testCar2 = new Car(new Driver("Olli"))
   val trackData = IO.readTrack("paris.txt")
-  IO.writeLaptimes("paris.txt", ("Kimi",10))
-  private val track = new Track("Test Track", buildMap(trackData._2), Array(testCar,testCar2))
+  private val track = new Track(trackData._1, buildMap(trackData._2), Array(testCar,testCar2))
 
   //Moves the car whose turn it is to the given position
   //Also gives the turn to the next Player

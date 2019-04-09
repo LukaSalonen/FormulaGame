@@ -117,7 +117,7 @@ class Track(val nameOfTrack: String, val raceTrack: Array[Array[SquareType]], va
     if (!currentPos.equals(target)) {
       val currentSquare = squareAtPos(currentPos)
       val targetSquare = squareAtPos(target)
-
+      currentSquare.carHere.foreach(_.increaseTurnsTaken)
       targetSquare.carHere = currentSquare.carHere
       currentSquare.carHere = None
       previousLocation(playerIndex) = currentPos
