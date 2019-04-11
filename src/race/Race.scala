@@ -3,8 +3,9 @@ package race
 class Race {
 
   // Testing code for testing purposes
-  val testCar = new Car(new Driver("Luka"))
-  val testCar2 = new Car(new Driver("Olli"))
+  val drivers = buildDrivers(IO.readDrivers)
+  val testCar = new Car(drivers(0))
+  val testCar2 = new Car(drivers(1))
   val trackData = IO.readTrack("paris.txt")
   private val track = new Track(trackData._1, buildMap(trackData._2), Array(testCar,testCar2))
 
@@ -53,5 +54,13 @@ class Race {
   }
 
   def buildDrivers(names: Array[String]): Array[Driver] = names.map(new Driver(_))
+  
+  def atEndOfGame = {
+    if(winner.isDefined) {
+      val first = winner.get
+      val fileName = track.nameOfTrack.toLowerCase() + ".txt"
+      IO.writeLaptimes(fileName, (first.driver.name, first.getTurnsTaken))
+    }
+  }
 
 }
