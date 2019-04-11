@@ -43,7 +43,7 @@ class Track(val nameOfTrack: String, val raceTrack: Array[Array[SquareType]], va
     result(7) = nextCenter.addToXY(0, 1)
     result(8) = nextCenter.addToXY(1, 1)
 
-    result = result.filter(a => squareAtPos(a).canPassThrough) //index out of bounds TODO
+    result = result.filter(b => b.x >= 0 && b.y >= 0).filter(a => squareAtPos(a).canPassThrough) //index out of bounds TODO
 
     result
   }
