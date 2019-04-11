@@ -6,8 +6,10 @@ class Race {
   val drivers = buildDrivers(IO.readDrivers)
   val testCar = new Car(drivers(0))
   val testCar2 = new Car(drivers(1))
+  val testCar3 = new Car(drivers(2))
+  val testCar4 = new Car(drivers(4))
   val trackData = IO.readTrack("paris.txt")
-  private val track = new Track(trackData._1, buildMap(trackData._2), Array(testCar,testCar2))
+  private val track = new Track(trackData._1, buildMap(trackData._2), Array(testCar,testCar2, testCar3, testCar4))
 
   //Moves the car whose turn it is to the given position
   //Also gives the turn to the next Player
@@ -23,6 +25,10 @@ class Race {
   }
 
   def getMap: Array[Array[SquareType]] = this.track.raceTrack
+  
+  def getCars: Array[Car] = this.track.cars
+  
+  def noOptions: Boolean = nextMovementOptions.isEmpty
 
   // Keeps track of whose turn it is
   private var nextTurnIndex = 0
@@ -31,7 +37,7 @@ class Race {
   
   var winner: Option[Car] = None
   
-  def gameOver: Boolean = winner.isDefined || track.cars.forall(_.isCrashed)
+  def gameOver: Boolean = winner.isDefined || track.cars.forall(_.isCrashed) // TODO game also over if only one car remains
 
   // Returns the possible moves for the player whose turn it is
   def nextMovementOptions = track.moveOptions(nextTurnIndex)
@@ -53,6 +59,10 @@ class Race {
     result
   }
 
+  // TODO make last car not crashed winner 
+  
+  def writeNewDriverToFile(name: String) = IO.writeNewDriver(name)
+  
   def buildDrivers(names: Array[String]): Array[Driver] = names.map(new Driver(_))
   
   def atEndOfGame = {
