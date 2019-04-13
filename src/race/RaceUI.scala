@@ -35,13 +35,15 @@ import scalafx.scene.text.Text
 import Color._
 import scala.collection.mutable.Buffer
 import scalafx.scene.control.TextInputDialog
+import scalafx.scene.control.ChoiceDialog
+import scalafx.scene.control.ButtonType
 
 object RaceUI extends JFXApp {
 
   var race = new Race
   var lPane: Option[TilePane] = None
   var rPane: Option[GridPane] = None
-  val carColors = Array(RED, BLUE, GREEN, ORANGE, YELLOW, CYAN, CRIMSON, DARKBLUE)
+  val carColors = Array(Crimson, Yellow, LightGreen, Cyan)
 
   stage = new JFXApp.PrimaryStage {
     title = "Racing Game"
@@ -58,30 +60,26 @@ object RaceUI extends JFXApp {
       debugMenu.items = List(drawTest)
       menuBar.menus = List(gameMenu, debugMenu)
 
-      //val testButton = new Button("Test button pls click!")
-      //gridPane.add(testButton, 0, 0)
-      //testButton.alignmentInParent_=(Pos.CENTER)
-
       val rootPane = new BorderPane
 
       val leftTile = new TilePane
       lPane = Some(leftTile)
-      //leftTile.border = new Border(new BorderStroke(Color.BLACK, BorderStrokeStyle.Solid,
-      //CornerRadii.EMPTY, BorderWidths.Default))
       leftTile.prefWidth <== (rootPane.width / 6)
       leftTile.prefHeight <== (rootPane.height - menuBar.height)
-      leftTile.orientation = Orientation.HORIZONTAL
+      leftTile.orientation = Orientation.Horizontal
 
       val gridPane = new GridPane
       rPane = Some(gridPane)
       gridPane.gridLinesVisible = false
       gridPane.hgap = 1
       gridPane.vgap = 1
-      gridPane.alignment_=(Pos.TOP_LEFT)
+      gridPane.alignment_=(Pos.TopLeft)
 
       val topBorderPane = new BorderPane
-      topBorderPane.left = leftTile
-      topBorderPane.center = gridPane
+
+      val newGameButton = new Button("New Game")
+      topBorderPane.center = newGameButton
+      newGameButton.alignmentInParent_=(Pos.Center)
 
       rootPane.top = menuBar
       rootPane.center = topBorderPane
@@ -93,40 +91,31 @@ object RaceUI extends JFXApp {
         buildEverything()
       }
 
-      /*
-      testButton.onAction = (ae: ActionEvent) => {
-        testButton.text = "Gotcha bich!"
+      newGameButton.onAction = (ae: ActionEvent) => {
+        topBorderPane.left = leftTile
+        topBorderPane.center = gridPane
+        newGame()
       }
-      */
+
+      newGameItem.onAction = (ae: ActionEvent) => {
+        newGame()
+      }
 
       addPlayerItem.onAction = (ae: ActionEvent) => {
-        val dialog = new TextInputDialog {
-          initOwner(stage)
-          title = "Add new driver"
-          contentText = "Please give a name to the new driver:"
-        }
-        val result = dialog.showAndWait()
-        
-        result match {
-          case Some(name) => race.writeNewDriverToFile(name)
-          case None       =>
-        }
+        newDriver()
       }
-      
+
       exitItem.onAction = (ae: ActionEvent) => {
         sys.exit(0)
       }
 
       onKeyPressed = (ke: KeyEvent) => {
         ke.code match {
-          case KeyCode.SPACE => {
+          case KeyCode.Space => {
             buildEverything()
           }
-          case KeyCode.SHIFT => {
-            testStuff
-          }
-          case KeyCode.ALT => {
-            new Alert(AlertType.Information, "Dialog test!").showAndWait()
+          case KeyCode.Shift => {
+
           }
           case _ =>
         }
@@ -158,22 +147,20 @@ object RaceUI extends JFXApp {
         newSquare.fill = nextColor
         gp.add(newSquare, j, i)
 
-        if (current.carHere.isDefined) {
+        if (current.carHere.isDefined && !current.carHere.get.isCrashed) {
           val circle = Circle(10)
           circle.radius <== (gp.width / (3 * race.getMap.head.size))
           circle.fill = carColors(race.getCars.indexOf(current.carHere.get))
-          circle.alignmentInParent_=(Pos.CENTER)
+          circle.alignmentInParent_=(Pos.Center)
           gp.add(circle, j, i)
         }
-/*
         if (race.noOptions) {
 
           val last = race.nextCar // TODO make the car disappear if crashed
           last.isCrashed = true
           race.nextMove(new Coordinates(j, i))
-
+          buildEverything()
         }
-        */
       }
     }
   }
@@ -183,13 +170,12 @@ object RaceUI extends JFXApp {
     for (k <- options) {
       val circle = Circle(2)
       circle.radius <== (gp.width / (3.5 * race.getMap.head.size))
-      circle.fill = Color.BLUEVIOLET
-      circle.alignmentInParent_=(Pos.CENTER)
+      circle.fill = Color.DarkBlue
+      circle.alignmentInParent_=(Pos.Center)
       gp.add(circle, k.x, k.y)
 
       circle.onMouseClicked = (me: MouseEvent) => {
-        race.nextMove(new Coordinates(k.x, k.y))
-        buildEverything()
+        takeTurn(new Coordinates(k.x, k.y))
       }
     }
   }
@@ -206,13 +192,12 @@ object RaceUI extends JFXApp {
 
       if (!a.isCrashed) {
         if (a == race.nextCar) rect.fill = DARKGREY
-        else rect.fill = LIGHTGREY
-
-      } else rect.fill = YELLOW
+        else rect.fill = LightGrey
+      } else rect.fill = LightSalmon
       val text = new Text(a.driver.name)
-      text.alignmentInParent = Pos.TOP_LEFT
+      text.alignmentInParent = Pos.TopLeft
       val circle = Circle(10)
-      circle.alignmentInParent = Pos.TOP_RIGHT
+      circle.alignmentInParent = Pos.TopRight
       circle.fill = carColors(cars.indexOf(a))
       stackPane.children = List(rect, text, circle)
       results += stackPane
@@ -227,11 +212,141 @@ object RaceUI extends JFXApp {
       rp.children = (new Pane)
       buildGridLayout(rp)
       buildCarInfoTiles(lp)
-      if(!race.gameOver) buildMoveOptions(rp)
+      if (!race.gameOver) buildMoveOptions(rp)
     } else throw new NullPointerException
   }
 
-  def testStuff = {
-    race = new Race
+  def newGame(): Unit = {
+
+    try {
+      val trackOptions = race.getTracks.map(_.replaceAll(".txt", "")).map(_.toLowerCase()).sorted
+      val playerOptions = race.getDrivers.sorted
+
+      val chosenTrack = askTrack(trackOptions)
+      val chosenNoOfPlayers = askNoOfPlayers()
+      val chosenPlayers = chosenNoOfPlayers match {
+        case Some(a) => askWhichPlayers(a, playerOptions)
+        case None    => None
+      }
+
+      chosenTrack match {
+        case Some(a) => {
+          chosenPlayers match {
+            case Some(b) => {
+              race.setTrack(a, b)
+              buildEverything()
+
+            }
+            case None => println("Ei uutta peliä 2")
+          }
+        }
+        case None => println("Ei uutta peliä 1")
+      }
+
+    } catch {
+      case e: Exception => println("newGame() kusee huolella")
+    }
+
+    def askTrack(tracks: Array[String]): Option[String] = {
+      val dialog = new ChoiceDialog(defaultChoice = tracks.head, choices = tracks) {
+        initOwner(stage)
+        title = "Choose Track"
+        headerText = None
+        contentText = "Choose a track to play on:"
+      }
+      dialog.showAndWait()
+    }
+
+    def askNoOfPlayers(): Option[Int] = {
+      val options = (2 to 4)
+      val dialog = new ChoiceDialog(defaultChoice = 2, choices = options) {
+        initOwner(stage)
+        title = "Choose Number of Players"
+        headerText = None
+        contentText = "Choose number of players:"
+      }
+      dialog.showAndWait()
+    }
+
+    def askWhichPlayers(number: Int, players: Array[String]): Option[Array[String]] = {
+      if (number > players.size) throw new TooFewPlayersException
+      val result: Buffer[String] = Buffer()
+      var playersLeft = players.toBuffer
+
+      for (i <- 1 to number) {
+        val dialog = new ChoiceDialog(defaultChoice = playersLeft.head, choices = playersLeft) {
+          initOwner(stage)
+          title = "Choose a Player"
+          headerText = "You can add new players in the game menu."
+          contentText = s"Choose player number $i:"
+        }
+        val current = dialog.showAndWait()
+        current match {
+          case Some(name) => {
+            playersLeft -= name
+            result += name
+          }
+          case None =>
+        }
+      }
+      result.size match {
+        case s if s == number => Some(result.toArray)
+        case s                => None
+      }
+    }
+
+  }
+
+  def takeTurn(toPos: Coordinates): Unit = {
+
+    if (!race.nextCar.isCrashed && !race.noOptions) race.nextMove(toPos)
+
+    while (race.nextCar.isCrashed || race.noOptions) {
+      if (race.noOptions) race.nextCar.isCrashed = true
+      race.nextMove(toPos)
+    }
+
+    buildEverything()
+
+    if (race.gameOver) {
+      race.atEndOfGame()
+      val button1 = new ButtonType("New Game")
+      val button2 = new ButtonType("Exit")
+      val alert = new Alert(AlertType.Information) {
+        initOwner(stage)
+        title = "Winner Winner Chicken Dinner"
+        headerText = None
+        buttonTypes = Seq(ButtonType.OK, button1, button2)
+        contentText = race.winner match {
+          case Some(a) => "The winner is " + a.driver.name + "!"
+          case None    => "No winner? Something went wrong."
+        }
+
+      }
+      alert.showAndWait() match {
+        case Some(button1) if button1.text == "New Game" => newGame()
+        case Some(button2) if button2.text == "Exit"     => sys.exit(0)
+        case _                                           => println("Alles gut!")
+      }
+    }
+
+  }
+
+  def newDriver(): Boolean = {
+    val dialog = new TextInputDialog {
+      initOwner(stage)
+      title = "Add new driver"
+      headerText = None
+      contentText = "Please give a name to the new driver:"
+    }
+    val result = dialog.showAndWait()
+
+    result match {
+      case Some(name) => {
+        race.saveNewDriver(name)
+        true
+      }
+      case None => false
+    }
   }
 }
