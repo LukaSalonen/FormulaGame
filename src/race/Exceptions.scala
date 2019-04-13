@@ -1,0 +1,3 @@
+package race
+
+class TooFewPlayersException extends Exception
