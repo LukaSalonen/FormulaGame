@@ -1,16 +1,15 @@
 package race
 
 class Race {
-
-  // Testing code for testing purposes
-  val drivers = buildDrivers(IO.readDrivers)
-  val testCar = new Car(drivers(0))
-  val testCar2 = new Car(drivers(1))
-  val testCar3 = new Car(drivers(2))
-  val testCar4 = new Car(drivers(4))
-  val trackData = IO.readTrack("paris.txt")
-  private val track = new Track(trackData._1, buildMap(trackData._2), Array(testCar,testCar2, testCar3, testCar4))
-
+  
+  private var track = new Track("default track", Array[Array[SquareType]](Array(new Obstacle)), Array(new Car(new Driver("default driver"))))
+  
+  def setTrack(trackName: String, cars: Array[String]): Unit = {
+    //TODO make best laptimes visible in the sidebar
+    val map = buildMap(IO.readTrack(trackName + ".txt")._2)
+    track = new Track(trackName, map, buildCars(cars ))
+  }
+  
   //Moves the car whose turn it is to the given position
   //Also gives the turn to the next Player
   def nextMove(pos: Coordinates) = {
@@ -37,7 +36,8 @@ class Race {
   
   var winner: Option[Car] = None
   
-  def gameOver: Boolean = winner.isDefined || track.cars.forall(_.isCrashed) // TODO game also over if only one car remains
+  def gameOver: Boolean = winner.isDefined || track.cars.filter(!_.isCrashed).size == 1 ||
+                          track.cars.indices.filter(track.lastMoveWon(_)).size > 0
 
   // Returns the possible moves for the player whose turn it is
   def nextMovementOptions = track.moveOptions(nextTurnIndex)
@@ -61,11 +61,23 @@ class Race {
 
   // TODO make last car not crashed winner 
   
-  def writeNewDriverToFile(name: String) = IO.writeNewDriver(name)
+  def saveNewDriver(name: String) = IO.writeNewDriver(name)
+  
+  def buildCars(names: Array[String]): Array[Car] = buildDrivers(names).map(new Car(_))
   
   def buildDrivers(names: Array[String]): Array[Driver] = names.map(new Driver(_))
   
-  def atEndOfGame = {
+  def getDrivers: Array[String] = IO.readDrivers
+  
+  def getTracks: Array[String] = IO.availableTracks
+  
+  def atEndOfGame() = {
+    val cars = track.cars
+    if(cars.filter(!_.isCrashed).size == 1) {
+      winner = Some(cars.filter(!_.isCrashed).head)
+    }else if(cars.indices.filter(track.lastMoveWon(_)).size > 0) {
+      winner = Some(cars(cars.indices.filter(track.lastMoveWon(_)).head))
+    }
     if(winner.isDefined) {
       val first = winner.get
       val fileName = track.nameOfTrack.toLowerCase() + ".txt"
