@@ -13,7 +13,7 @@ class Track(val nameOfTrack: String, val raceTrack: Array[Array[SquareType]], va
   val previousLocation: Array[Coordinates] = Array.ofDim[Coordinates](cars.length)
 
   //Sets cars up for the game
-  this.initializeTrack
+  if(nameOfTrack != "default track") this.initializeTrack
 
   // returns the positions where the given player can move
   def moveOptions(playerIndex: Int): Array[Coordinates] = {
