@@ -80,7 +80,7 @@ object IO {
               topLaps += ((stuff(0), stuff(1).toInt))
             }
             case s if s == "" =>
-            case s if s.forall(a => a == '#' || a == '¤' || a == 'g' || a == 's') => {
+            case s if s.forall(a => a == '#' || a == '¤' || a == 'g' || a == 's' || a == 'c') => {
               track += s.toBuffer
             }
             case _ =>
