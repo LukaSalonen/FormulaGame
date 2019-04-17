@@ -15,47 +15,37 @@ object IO {
   def readDrivers: Array[String] = {
 
     val result = Buffer[String]()
+    val fileIn = new FileReader("data/drivers.txt")
+    val linesIn = new BufferedReader(fileIn)
 
     try {
-      val fileIn = new FileReader("data/drivers.txt")
-      val linesIn = new BufferedReader(fileIn)
 
-      try {
+      var currentLine = linesIn.readLine()
 
-        var currentLine = linesIn.readLine()
-
-        while (currentLine != null) {
-          result += currentLine
-          currentLine = linesIn.readLine()
-        }
-      } finally {
-        fileIn.close()
-        linesIn.close()
+      while (currentLine != null) {
+        result += currentLine
+        currentLine = linesIn.readLine()
       }
-    } catch {
-      case e: FileNotFoundException => println("File was not found.")
-      case e: IOException           => println("Something went wrong while reading the drivers file.")
+    } finally {
+      fileIn.close()
+      linesIn.close()
     }
     result.toArray
   }
 
   def writeNewDriver(name: String): Unit = {
+    val fileOut = new FileWriter("data/drivers.txt", true)
+    val bufferedWriter = new BufferedWriter(fileOut)
+    val printWriter = new PrintWriter(bufferedWriter)
     try {
-      val fileOut = new FileWriter("data/drivers.txt", true)
-      val bufferedWriter = new BufferedWriter(fileOut)
-      val printWriter = new PrintWriter(bufferedWriter)
-      try {
 
-        printWriter.println(name)
-        printWriter.flush()
+      printWriter.println(name)
+      printWriter.flush()
 
-      } finally {
-        fileOut.close()
-        bufferedWriter.close()
-        printWriter.close()
-      }
-    } catch {
-      case e: IOException => println("Something went wrong while writing the new player.")
+    } finally {
+      fileOut.close()
+      bufferedWriter.close()
+      printWriter.close()
     }
   }
 
@@ -65,36 +55,31 @@ object IO {
     var track = Buffer[Buffer[Char]]()
     var topLaps = Buffer[(String, Int)]()
 
+    val fr = new FileReader("data/tracks/" + fileName)
+    val br = new BufferedReader(fr)
+
     try {
-      val fr = new FileReader("data/tracks/" + fileName)
-      val br = new BufferedReader(fr)
+      var currentLine = br.readLine()
 
-      try {
-        var currentLine = br.readLine()
-
-        while (currentLine != null) {
-          currentLine match {
-            case s if s.contains("nameOfTrack") => trackName = s.split(":").last
-            case s if s.contains("lapTime") => {
-              val stuff = s.split(":").last.split(",")
-              topLaps += ((stuff(0), stuff(1).toInt))
-            }
-            case s if s == "" =>
-            case s if s.forall(a => a == '#' || a == '¤' || a == 'g' || a == 's' || a == 'c') => {
-              track += s.toBuffer
-            }
-            case _ =>
+      while (currentLine != null) {
+        currentLine match {
+          case s if s.contains("nameOfTrack") => trackName = s.split(":").last
+          case s if s.contains("lapTime") => {
+            val stuff = s.split(":").last.split(",")
+            topLaps += ((stuff(0), stuff(1).toInt))
           }
-          currentLine = br.readLine()
+          case s if s == "" =>
+          case s if s.forall(a => a == '#' || a == '¤' || a == 'g' || a == 's' || a == 'c') => {
+            track += s.toBuffer
+          }
+          case _ =>
         }
-
-      } finally {
-        fr.close()
-        br.close()
+        currentLine = br.readLine()
       }
-    } catch {
-      case e: FileNotFoundException => println("File was not found.")
-      case e: IOException           => println("Something went wrong while reading the track file.")
+
+    } finally {
+      fr.close()
+      br.close()
     }
 
     if (trackName == "default") throw new IOException
@@ -119,27 +104,23 @@ object IO {
     var laps = trackData._3 :+ newLapData
     laps = laps.sortBy(x => x._2).dropRight(1)
 
+    val fileOut = new FileWriter("data/tracks/" + fileName, false)
+    val bufferedWriter = new BufferedWriter(fileOut)
+    val printWriter = new PrintWriter(bufferedWriter)
+
     try {
-      val fileOut = new FileWriter("data/tracks/" + fileName, false)
-      val bufferedWriter = new BufferedWriter(fileOut)
-      val printWriter = new PrintWriter(bufferedWriter)
-
-      try {
-        printWriter.println("nameOfTrack:" + trackData._1)
-        for (i <- 1 to 3) {
-          printWriter.println(s"lapTime$i:" + laps(i - 1)._1 + "," + laps(i - 1)._2)
-        }
-        printWriter.println("")
-        trackData._2.foreach(x => printWriter.println(x))
-        printWriter.flush()
-
-      } finally {
-        fileOut.close()
-        bufferedWriter.close()
-        printWriter.close()
+      printWriter.println("nameOfTrack:" + trackData._1)
+      for (i <- 1 to 3) {
+        printWriter.println(s"lapTime$i:" + laps(i - 1)._1 + "," + laps(i - 1)._2)
       }
-    } catch {
-      case e: IOException => println("Something went wrong while writing new laptimes.")
+      printWriter.println("")
+      trackData._2.foreach(x => printWriter.println(x))
+      printWriter.flush()
+
+    } finally {
+      fileOut.close()
+      bufferedWriter.close()
+      printWriter.close()
     }
   }
 

@@ -1,42 +1,50 @@
 package race
 
-import scalafx.Includes._
+import java.io.FileNotFoundException
+import java.io.IOException
+import java.io.PrintWriter
+import java.io.StringWriter
+
+import scala.collection.mutable.Buffer
+
 import scalafx.Includes.eventClosureWrapperWithParam
 import scalafx.Includes.jfxActionEvent2sfx
+import scalafx.Includes.jfxMouseEvent2sfx
 import scalafx.application.JFXApp
 import scalafx.event.ActionEvent
+import scalafx.geometry.Orientation
+import scalafx.geometry.Pos
 import scalafx.scene.Scene
+import scalafx.scene.control.Alert
+import scalafx.scene.control.Alert.AlertType
 import scalafx.scene.control.Button
+import scalafx.scene.control.ButtonType
+import scalafx.scene.control.ChoiceDialog
+import scalafx.scene.control.Label
 import scalafx.scene.control.Menu
 import scalafx.scene.control.MenuBar
 import scalafx.scene.control.MenuItem
 import scalafx.scene.control.SeparatorMenuItem
+import scalafx.scene.control.TextArea
+import scalafx.scene.control.TextInputDialog
+import scalafx.scene.input.MouseEvent
 import scalafx.scene.layout.BorderPane
 import scalafx.scene.layout.GridPane
-import scalafx.scene.layout.StackPane
-import scalafx.scene.paint.Color
-import scalafx.scene.shape.Rectangle
-import scalafx.geometry.Pos
-import scalafx.scene.shape.Circle
 import scalafx.scene.layout.Pane
-import scalafx.scene.input.KeyEvent
-import scalafx.scene.input.MouseEvent
-import scalafx.scene.input.KeyCode
-import scalafx.scene.control.Alert.AlertType
-import scalafx.scene.control.Alert
+import scalafx.scene.layout.Priority
+import scalafx.scene.layout.StackPane
 import scalafx.scene.layout.TilePane
-import javafx.scene.layout.Border
-import scalafx.scene.layout.BorderStrokeStyle
-import javafx.scene.layout.CornerRadii
-import scalafx.scene.layout.BorderStroke
-import scalafx.scene.layout.BorderWidths
-import scalafx.geometry.Orientation
+import scalafx.scene.paint.Color
+import scalafx.scene.paint.Color.Crimson
+import scalafx.scene.paint.Color.Cyan
+import scalafx.scene.paint.Color.DARKGREY
+import scalafx.scene.paint.Color.LightGreen
+import scalafx.scene.paint.Color.LightGrey
+import scalafx.scene.paint.Color.LightSalmon
+import scalafx.scene.paint.Color.Yellow
+import scalafx.scene.shape.Circle
+import scalafx.scene.shape.Rectangle
 import scalafx.scene.text.Text
-import Color._
-import scala.collection.mutable.Buffer
-import scalafx.scene.control.TextInputDialog
-import scalafx.scene.control.ChoiceDialog
-import scalafx.scene.control.ButtonType
 
 object RaceUI extends JFXApp {
 
@@ -55,10 +63,6 @@ object RaceUI extends JFXApp {
       val exitItem = new MenuItem("Exit")
       gameMenu.items = List(newGameItem, addPlayerItem, new SeparatorMenuItem, exitItem)
       menuBar.menus = List(gameMenu)
-      val debugMenu = new Menu("Debug")
-      val drawTest = new MenuItem("Draw track")
-      debugMenu.items = List(drawTest)
-      menuBar.menus = List(gameMenu, debugMenu)
 
       val rootPane = new BorderPane
 
@@ -87,10 +91,6 @@ object RaceUI extends JFXApp {
 
       //Action handlers start here
 
-      drawTest.onAction = (ae: ActionEvent) => {
-        buildEverything()
-      }
-
       newGameButton.onAction = (ae: ActionEvent) => {
         topBorderPane.left = leftTile
         topBorderPane.center = gridPane
@@ -111,20 +111,35 @@ object RaceUI extends JFXApp {
         sys.exit(0)
       }
 
-      onKeyPressed = (ke: KeyEvent) => {
-        ke.code match {
-          case KeyCode.Space => {
-            buildEverything()
-          }
-          case KeyCode.Shift => {
-
-          }
-          case _ =>
-        }
-      }
-
     }
 
+  }
+
+  def errorAlert(content: String, e: Exception) = {
+
+    val label = new Label("The exception stacktrace was:")
+    val textArea = new TextArea {
+      text = e.toString() + "\n" + e.getStackTraceString
+      editable = false
+      wrapText = true
+      maxWidth = Double.MaxValue
+      maxHeight = Double.MaxValue
+      vgrow = Priority.Always
+      hgrow = Priority.Always
+    }
+    val expContent = new GridPane {
+      maxWidth = Double.MaxValue
+      add(label, 0, 0)
+      add(textArea, 0, 1)
+    }
+
+    new Alert(AlertType.Error) {
+      initOwner(stage)
+      title = "Exception Occured"
+      headerText = None
+      contentText = content
+      dialogPane().setExpandableContent(expContent)
+    }.showAndWait()
   }
 
   def buildGridLayout(gp: GridPane): Unit = {
@@ -239,14 +254,17 @@ object RaceUI extends JFXApp {
               race.setTrack(a, b)
               buildEverything()
             }
-            case None => 
+            case None =>
           }
         }
-        case None => 
+        case None =>
       }
-
     } catch {
-      case e: Exception => println("newGame() kusee huolella")
+      case e: TooFewPlayersException         => errorAlert("There are not enough saved players for that.", e)
+      case e: TooFewStartingSquaresException => errorAlert("That map has too few starting squares for that many players.", e)
+      case e: FileNotFoundException          => errorAlert("A required file was not found.", e)
+      case e: IOException                    => errorAlert("Something went wrong while reading/writing a file.", e)
+      case e: Exception                      => errorAlert("Something went wrong in the method newGame().", e)
     }
 
     def askTrack(tracks: Array[String]): Option[String] = {
@@ -311,7 +329,12 @@ object RaceUI extends JFXApp {
     buildEverything()
 
     if (race.gameOver) {
-      race.atEndOfGame()
+      try {
+        race.atEndOfGame()
+      } catch {
+        case e: IOException => errorAlert("Something went wrong while reading/writing a file.", e)
+        case e: Exception   => errorAlert("Something went wrong in the method atEndOfGame().", e)
+      }
       val button1 = new ButtonType("New Game")
       val button2 = new ButtonType("Exit")
       val alert = new Alert(AlertType.Information) {
@@ -328,7 +351,7 @@ object RaceUI extends JFXApp {
       alert.showAndWait() match {
         case Some(button1) if button1.text == "New Game" => newGame()
         case Some(button2) if button2.text == "Exit" => sys.exit(0)
-        case _ => 
+        case _ =>
       }
     }
 
@@ -350,4 +373,5 @@ object RaceUI extends JFXApp {
       case None => false
     }
   }
+
 }
