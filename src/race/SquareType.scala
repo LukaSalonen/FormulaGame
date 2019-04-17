@@ -21,3 +21,7 @@ class GoalLine extends SquareType {
 class StartingPlace extends SquareType {
   override def toString = "StartingPlace"
 }
+
+class Checkpoint extends SquareType {
+  override def toString = "Checkpoint"
+}
