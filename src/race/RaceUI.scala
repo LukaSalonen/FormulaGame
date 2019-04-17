@@ -98,6 +98,8 @@ object RaceUI extends JFXApp {
       }
 
       newGameItem.onAction = (ae: ActionEvent) => {
+        topBorderPane.left = leftTile
+        topBorderPane.center = gridPane
         newGame()
       }
 
@@ -142,6 +144,7 @@ object RaceUI extends JFXApp {
           case s: Driveway      => nextColor = Color.Burlywood
           case s: StartingPlace => nextColor = Color.Grey
           case s: GoalLine      => nextColor = Color.DarkMagenta
+          case s: Checkpoint    => nextColor = Color.Burlywood
           case _                =>
         }
         newSquare.fill = nextColor
@@ -156,7 +159,7 @@ object RaceUI extends JFXApp {
         }
         if (race.noOptions) {
 
-          val last = race.nextCar // TODO make the car disappear if crashed
+          val last = race.nextCar
           last.isCrashed = true
           race.nextMove(new Coordinates(j, i))
           buildEverything()
@@ -235,12 +238,11 @@ object RaceUI extends JFXApp {
             case Some(b) => {
               race.setTrack(a, b)
               buildEverything()
-
             }
-            case None => println("Ei uutta peliä 2")
+            case None => 
           }
         }
-        case None => println("Ei uutta peliä 1")
+        case None => 
       }
 
     } catch {
@@ -325,13 +327,12 @@ object RaceUI extends JFXApp {
       }
       alert.showAndWait() match {
         case Some(button1) if button1.text == "New Game" => newGame()
-        case Some(button2) if button2.text == "Exit"     => sys.exit(0)
-        case _                                           => println("Alles gut!")
+        case Some(button2) if button2.text == "Exit" => sys.exit(0)
+        case _ => 
       }
     }
 
   }
-
   def newDriver(): Boolean = {
     val dialog = new TextInputDialog {
       initOwner(stage)
