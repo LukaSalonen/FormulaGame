@@ -12,6 +12,7 @@ import java.io.File
 
 object IO {
 
+  // read all the drivers saved to the drivers.txt file
   def readDrivers: Array[String] = {
 
     val result = Buffer[String]()
@@ -33,6 +34,7 @@ object IO {
     result.toArray
   }
 
+  // save a new driver to the drivers.txt file
   def writeNewDriver(name: String): Unit = {
     val fileOut = new FileWriter("data/drivers.txt", true)
     val bufferedWriter = new BufferedWriter(fileOut)
@@ -49,6 +51,7 @@ object IO {
     }
   }
 
+  // read the name, squares and top laps of a given track
   def readTrack(fileName: String): (String, Array[Array[Char]], Array[(String, Int)]) = {
 
     var trackName = "default"
@@ -98,6 +101,7 @@ object IO {
 
   }
 
+  // write new best laptime to the file of the track
   def writeLaptimes(fileName: String, newLapData: (String, Int)): Unit = {
     val trackData = readTrack(fileName)
 
@@ -124,6 +128,7 @@ object IO {
     }
   }
 
+  // reads names of the tracks available to be played
   def availableTracks: Array[String] = {
     val result = Buffer[String]()
     val cwd = new File("./data/tracks")

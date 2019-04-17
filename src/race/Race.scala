@@ -2,16 +2,16 @@ package race
 
 class Race {
 
+  // sets a placeholder track for when the real one has no been read yet
   private var track = new Track("default track", Array[Array[SquareType]](Array(new Obstacle)), Array(new Car(new Driver("default driver"))))
 
+  // sets a different track for this race
   def setTrack(trackName: String, cars: Array[String]): Unit = {
-    //TODO make best laptimes visible in the sidebar
     val map = buildMap(IO.readTrack(trackName + ".txt")._2)
     track = new Track(trackName, map, buildCars(cars))
   }
 
-  //Moves the car whose turn it is to the given position
-  //Also gives the turn to the next Player
+  // Moves the car whose turn it is to the given position and give the turn to the next player
   def nextMove(pos: Coordinates) = {
     if (!nextCar.isCrashed) {
       track.moveCar(nextTurnIndex, pos)
@@ -34,6 +34,8 @@ class Race {
 
   var winner: Option[Car] = None
 
+  // checks wheater the game is over, that is there is only one uncrashed car left or someone 
+  // crossed both the checkpoint and the finish line
   def gameOver: Boolean = {
 
     val potWinner = track.cars.indices.find(a => track.lastMoveWon(a) && track.checkpointPassed(a))
@@ -72,6 +74,8 @@ class Race {
 
   def getTracks: Array[String] = IO.availableTracks
 
+  // sets the value of winner and if the victory happened by crossing the finish line 
+  // also writes the potential new lap record to the track file 
   def atEndOfGame() = {
     val cars = track.cars
     val potWinner = track.cars.indices.find(a => track.lastMoveWon(a) && track.checkpointPassed(a))

@@ -2,11 +2,7 @@ package race
 
 import java.io.FileNotFoundException
 import java.io.IOException
-import java.io.PrintWriter
-import java.io.StringWriter
-
 import scala.collection.mutable.Buffer
-
 import scalafx.Includes.eventClosureWrapperWithParam
 import scalafx.Includes.jfxActionEvent2sfx
 import scalafx.Includes.jfxMouseEvent2sfx
@@ -115,6 +111,7 @@ object RaceUI extends JFXApp {
 
   }
 
+  // error dialog for exception handling
   def errorAlert(content: String, e: Exception) = {
 
     val label = new Label("The exception stacktrace was:")
@@ -142,6 +139,7 @@ object RaceUI extends JFXApp {
     }.showAndWait()
   }
 
+  // draws the current 
   def buildGridLayout(gp: GridPane): Unit = {
 
     val options = race.nextMovementOptions
@@ -172,17 +170,11 @@ object RaceUI extends JFXApp {
           circle.alignmentInParent_=(Pos.Center)
           gp.add(circle, j, i)
         }
-        if (race.noOptions) {
-
-          val last = race.nextCar
-          last.isCrashed = true
-          race.nextMove(new Coordinates(j, i))
-          buildEverything()
-        }
       }
     }
   }
 
+  // draws the movement options for the next turn
   def buildMoveOptions(gp: GridPane): Unit = {
     val options = race.nextMovementOptions
     for (k <- options) {
@@ -198,6 +190,7 @@ object RaceUI extends JFXApp {
     }
   }
 
+  // draws info tiles that tell who is who and whose turn it is
   def buildCarInfoTiles(tp: TilePane): Unit = {
     val cars = race.getCars
     val results: Buffer[StackPane] = Buffer()
@@ -223,6 +216,7 @@ object RaceUI extends JFXApp {
     tp.children = results.toList
   }
 
+  // calls all the build functions to draw everything
   def buildEverything(): Unit = {
     if (lPane.isDefined && rPane.isDefined) {
       val lp = lPane.get
@@ -234,6 +228,8 @@ object RaceUI extends JFXApp {
     } else throw new NullPointerException
   }
 
+  // asks player what type of game they want to play and loads it
+  // handels exceptions
   def newGame(): Unit = {
 
     try {
@@ -317,6 +313,7 @@ object RaceUI extends JFXApp {
 
   }
 
+  // moves the game forward by one turn
   def takeTurn(toPos: Coordinates): Unit = {
 
     if (!race.nextCar.isCrashed && !race.noOptions) race.nextMove(toPos)
@@ -356,6 +353,8 @@ object RaceUI extends JFXApp {
     }
 
   }
+  
+  // asks the user for a new driver to be saved to file
   def newDriver(): Boolean = {
     val dialog = new TextInputDialog {
       initOwner(stage)

@@ -16,10 +16,15 @@ class Track(val nameOfTrack: String, val raceTrack: Array[Array[SquareType]], va
   //Sets cars up for the game
   if (nameOfTrack != "default track") this.initializeTrack
 
+  // checks if point q is on line segment pr
   def onSegment(p: Coordinates, q: Coordinates, r: Coordinates): Boolean = {
     (q.x <= max(p.x, r.x) && q.x >= min(p.x, r.x) && q.y <= max(p.y, r.y) && q.y >= min(p.y, r.y))
   }
 
+  // finds the orientation of the ordered triplet
+  // 0 --> p, q and r are colinear
+  // 1 --> Clockwise
+  // 2 --> Counterclockwise
   def orientation(p: Coordinates, q: Coordinates, r: Coordinates): Int = {
     val value = (q.y - p.y) * (r.x - q.x) - (q.x - p.x) * (r.y - q.y)
     if (value == 0) 0
@@ -27,6 +32,7 @@ class Track(val nameOfTrack: String, val raceTrack: Array[Array[SquareType]], va
     else 2
   }
 
+  // checks if line segments p1q1 and p2q2 intersect
   def doIntersect(p1: Coordinates, q1: Coordinates, p2: Coordinates, q2: Coordinates): Boolean = {
     val o1 = orientation(p1, q1, p2)
     val o2 = orientation(p1, q1, q2)
@@ -40,7 +46,8 @@ class Track(val nameOfTrack: String, val raceTrack: Array[Array[SquareType]], va
     else if (o4 == 0 && onSegment(p2, q1, q2)) true
     else false
   }
-  
+
+  // updates checkpointPassed if the player passed the checkpoint
   def updateCheckpointPassed(playerIndex: Int): Unit = {
     checkpointPassed(playerIndex) = checkpointPassed(playerIndex) || lastMovePassedCheckpoint(playerIndex)
   }
@@ -113,15 +120,16 @@ class Track(val nameOfTrack: String, val raceTrack: Array[Array[SquareType]], va
     result
   }
 
+  // checks if last move played in the game crossed the checkpoint line
   def lastMovePassedCheckpoint(playerIndex: Int): Boolean = {
     val checkpointLine = findCheckpoint.map(coordinatesOfSquare(_))
     val points = (new Coordinates(checkpointLine.minBy(_.x).x, checkpointLine.minBy(_.y).y), new Coordinates(checkpointLine.maxBy(_.x).x, checkpointLine.maxBy(_.y).y))
     val carPoints = (previousLocation(playerIndex), locationOfCar(playerIndex))
-    
+
     doIntersect(carPoints._1, carPoints._2, points._1, points._2)
   }
-  
-  // Returns a car whose last move crossed the finish line or none if no car did.
+
+  // checks if last move taken in the game crossed the finish line
   def lastMoveWon(carIndex: Int): Boolean = {
 
     val goalLine = findGoal.map(coordinatesOfSquare(_))
@@ -131,6 +139,7 @@ class Track(val nameOfTrack: String, val raceTrack: Array[Array[SquareType]], va
     doIntersect(carPoints._1, carPoints._2, goalPoints._1, goalPoints._2)
   }
 
+  // finds the squares that form the goal line
   def findGoal: Array[SquareType] = {
 
     val result = scala.collection.mutable.Buffer[SquareType]()
@@ -147,8 +156,9 @@ class Track(val nameOfTrack: String, val raceTrack: Array[Array[SquareType]], va
 
     result.toArray
   }
-  
-    def findCheckpoint: Array[SquareType] = {
+
+  // finds the squares that form the checkpoint line
+  def findCheckpoint: Array[SquareType] = {
 
     val result = scala.collection.mutable.Buffer[SquareType]()
 
