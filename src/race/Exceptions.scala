@@ -1,3 +1,4 @@
 package race
 
 class TooFewPlayersException extends Exception
+class TooFewStartingSquaresException extends Exception
