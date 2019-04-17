@@ -1,7 +1,6 @@
 package race
 
 import scala.math._
-
 class Track(val nameOfTrack: String, val raceTrack: Array[Array[SquareType]], val cars: Array[Car]) {
 
   // Track the dimensions of the track
@@ -12,11 +11,64 @@ class Track(val nameOfTrack: String, val raceTrack: Array[Array[SquareType]], va
   // Used for calculating the next possible moves
   val previousLocation: Array[Coordinates] = Array.ofDim[Coordinates](cars.length)
 
+  val checkpointPassed: Array[Boolean] = Array.ofDim[Boolean](cars.length)
+
   //Sets cars up for the game
-  if(nameOfTrack != "default track") this.initializeTrack
+  if (nameOfTrack != "default track") this.initializeTrack
+
+  def onSegment(p: Coordinates, q: Coordinates, r: Coordinates): Boolean = {
+    (q.x <= max(p.x, r.x) && q.x >= min(p.x, r.x) && q.y <= max(p.y, r.y) && q.y >= min(p.y, r.y))
+  }
+
+  def orientation(p: Coordinates, q: Coordinates, r: Coordinates): Int = {
+    val value = (q.y - p.y) * (r.x - q.x) - (q.x - p.x) * (r.y - q.y)
+    if (value == 0) 0
+    else if (value > 0) 1
+    else 2
+  }
+
+  def doIntersect(p1: Coordinates, q1: Coordinates, p2: Coordinates, q2: Coordinates): Boolean = {
+    val o1 = orientation(p1, q1, p2)
+    val o2 = orientation(p1, q1, q2)
+    val o3 = orientation(p2, q2, p1)
+    val o4 = orientation(p2, q2, q1)
+
+    if (o1 != o2 && o3 != o4) true
+    else if (o1 == 0 && onSegment(p1, p2, q1)) true
+    else if (o2 == 0 && onSegment(p1, q2, q1)) true
+    else if (o3 == 0 && onSegment(p2, p1, q2)) true
+    else if (o4 == 0 && onSegment(p2, q1, q2)) true
+    else false
+  }
+  
+  def updateCheckpointPassed(playerIndex: Int): Unit = {
+    checkpointPassed(playerIndex) = checkpointPassed(playerIndex) || lastMovePassedCheckpoint(playerIndex)
+  }
 
   // returns the positions where the given player can move
   def moveOptions(playerIndex: Int): Array[Coordinates] = {
+
+    def obstaclesInBounds(minX: Int, minY: Int, maxX: Int, maxY: Int): Array[Coordinates] = {
+      val found = scala.collection.mutable.Buffer[Coordinates]()
+      for (i <- minX to maxX) {
+        for (j <- minY to maxY) {
+          val current = new Coordinates(i, j)
+          squareAtPos(current) match {
+            case s: Obstacle => found += current
+            //case s if s.carHere.isDefined => found += current TODO cant drive through cars
+            case _           =>
+          }
+        }
+      }
+      found.toArray
+    }
+
+    def pathCollides(sPos: Coordinates, ePos: Coordinates): Boolean = {
+
+      val obst = obstaclesInBounds(min(sPos.x, ePos.x), min(sPos.y, ePos.y), max(sPos.x, ePos.x), max(sPos.y, ePos.y))
+      obst.foldLeft(false)((a, b) => onSegment(sPos, b, ePos))
+    }
+
     var result = Array.ofDim[Coordinates](9)
     val currentLocation = locationOfCar(playerIndex)
     val lastLocation = previousLocation(playerIndex)
@@ -43,9 +95,10 @@ class Track(val nameOfTrack: String, val raceTrack: Array[Array[SquareType]], va
     result(7) = nextCenter.addToXY(0, 1)
     result(8) = nextCenter.addToXY(1, 1)
 
-    result = result.filter(b => b.x >= 0 && b.y >= 0).filter(a => squareAtPos(a).canPassThrough) //index out of bounds TODO
+    result = result.filter(b => b.x >= 0 && b.y >= 0).filter(a => squareAtPos(a).canPassThrough).filter(c => !pathCollides(currentLocation, c))
 
     result
+
   }
 
   // Gives coordinates of a given players car
@@ -60,37 +113,20 @@ class Track(val nameOfTrack: String, val raceTrack: Array[Array[SquareType]], va
     result
   }
 
+  def lastMovePassedCheckpoint(playerIndex: Int): Boolean = {
+    val checkpointLine = findCheckpoint.map(coordinatesOfSquare(_))
+    val points = (new Coordinates(checkpointLine.minBy(_.x).x, checkpointLine.minBy(_.y).y), new Coordinates(checkpointLine.maxBy(_.x).x, checkpointLine.maxBy(_.y).y))
+    val carPoints = (previousLocation(playerIndex), locationOfCar(playerIndex))
+    
+    doIntersect(carPoints._1, carPoints._2, points._1, points._2)
+  }
+  
   // Returns a car whose last move crossed the finish line or none if no car did.
   def lastMoveWon(carIndex: Int): Boolean = {
 
     val goalLine = findGoal.map(coordinatesOfSquare(_))
     var goalPoints = (new Coordinates(goalLine.minBy(_.x).x, goalLine.minBy(_.y).y), new Coordinates(goalLine.maxBy(_.x).x, goalLine.maxBy(_.y).y))
     val carPoints = (previousLocation(carIndex), locationOfCar(carIndex))
-
-    def onSegment(p: Coordinates, q: Coordinates, r: Coordinates): Boolean = {
-      (q.x <= max(p.x, r.x) && q.x >= min(p.x, r.x) && q.y <= max(p.y, r.y) && q.y >= min(p.y, r.y))
-    }
-    
-    def orientation(p: Coordinates, q: Coordinates, r: Coordinates): Int = {
-      val value = (q.y - p.y) * (r.x - q.x) - (q.x - p.x) * (r.y - q.y)
-      if(value == 0) 0
-      else if(value > 0) 1
-      else 2
-    }
-    
-    def doIntersect(p1: Coordinates, q1: Coordinates, p2: Coordinates, q2: Coordinates): Boolean = {
-      val o1 = orientation(p1, q1, p2) 
-      val o2 = orientation(p1, q1, q2)
-      val o3 = orientation(p2, q2, p1)
-      val o4 = orientation(p2, q2, q1)
-      
-      if (o1 != o2 && o3 != o4) true
-      else if(o1 == 0 && onSegment(p1, p2, q1)) true
-      else if(o2 == 0 && onSegment(p1, q2, q1)) true
-      else if(o3 == 0 && onSegment(p2, p1, q2)) true
-      else if(o4 == 0 && onSegment(p2, q1, q2)) true
-      else false
-    }
 
     doIntersect(carPoints._1, carPoints._2, goalPoints._1, goalPoints._2)
   }
@@ -102,7 +138,27 @@ class Track(val nameOfTrack: String, val raceTrack: Array[Array[SquareType]], va
     for (i <- 0 until this.height) {
       for (j <- 0 until this.width) {
         val current = raceTrack(i)(j)
-        if (current.toString == "GoalLine") result += current
+        current match {
+          case s: GoalLine => result += current
+          case _           =>
+        }
+      }
+    }
+
+    result.toArray
+  }
+  
+    def findCheckpoint: Array[SquareType] = {
+
+    val result = scala.collection.mutable.Buffer[SquareType]()
+
+    for (i <- 0 until this.height) {
+      for (j <- 0 until this.width) {
+        val current = raceTrack(i)(j)
+        current match {
+          case s: Checkpoint => result += current
+          case _             =>
+        }
       }
     }
 
@@ -125,7 +181,6 @@ class Track(val nameOfTrack: String, val raceTrack: Array[Array[SquareType]], va
   }
 
   // Finds the closest StartingPlace square within 4 squares
-  // used for calculating moveOptions for a car on its first turn
   private def closestGoalLine(pos: Coordinates): Option[Coordinates] = {
     var result: Option[Coordinates] = None
     for (i <- 1 to 5) {
@@ -150,9 +205,7 @@ class Track(val nameOfTrack: String, val raceTrack: Array[Array[SquareType]], va
         if (current.toString == "StartingPlace") startingSquares += current
       }
     }
-    require(startingSquares.length >= cars.length)
-    if (startingSquares.length < cars.length) println("placingCarsOnStart kusee") //TODO exception
-
+    if (startingSquares.length < cars.length) throw new TooFewStartingSquaresException
     else {
       startingSquares = scala.util.Random.shuffle(startingSquares)
       for (k <- cars.indices) {
