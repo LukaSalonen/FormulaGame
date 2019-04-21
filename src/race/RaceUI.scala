@@ -139,7 +139,7 @@ object RaceUI extends JFXApp {
     }.showAndWait()
   }
 
-  // draws the current 
+  // draws the current state of the track
   def buildGridLayout(gp: GridPane): Unit = {
 
     val options = race.nextMovementOptions
@@ -178,13 +178,14 @@ object RaceUI extends JFXApp {
   def buildMoveOptions(gp: GridPane): Unit = {
     val options = race.nextMovementOptions
     for (k <- options) {
-      val circle = Circle(2)
-      circle.radius <== (gp.width / (3.5 * race.getMap.head.size))
-      circle.fill = Color.DarkBlue
-      circle.alignmentInParent_=(Pos.Center)
-      gp.add(circle, k.x, k.y)
+      val square = Rectangle(50,50)
+      square.width <== (gp.width / race.getMap.head.size - 7)
+      square.height <== (gp.height / race.getMap.size - 6)
+      square.fill = Color.DarkBlue
+      square.alignmentInParent_=(Pos.Center)
+      gp.add(square, k.x, k.y)
 
-      circle.onMouseClicked = (me: MouseEvent) => {
+      square.onMouseClicked = (me: MouseEvent) => {
         takeTurn(new Coordinates(k.x, k.y))
       }
     }
@@ -229,12 +230,12 @@ object RaceUI extends JFXApp {
   }
 
   // asks player what type of game they want to play and loads it
-  // handels exceptions
+  // also handles exceptions
   def newGame(): Unit = {
 
     try {
       val trackOptions = race.getTracks.map(_.replaceAll(".txt", "")).map(_.toLowerCase()).sorted
-      val playerOptions = race.getDrivers.sorted
+      val playerOptions = race.getDrivers.filter(_ != "").sorted
 
       val chosenTrack = askTrack(trackOptions)
       val chosenNoOfPlayers = askNoOfPlayers()

@@ -62,8 +62,8 @@ class Track(val nameOfTrack: String, val raceTrack: Array[Array[SquareType]], va
           val current = new Coordinates(i, j)
           squareAtPos(current) match {
             case s: Obstacle => found += current
-            //case s if s.carHere.isDefined => found += current TODO cant drive through cars
-            case _           =>
+            case s if (s.carHere.isDefined && s.carHere.get != cars(playerIndex)) => found += current
+            case _ =>
           }
         }
       }
@@ -101,14 +101,11 @@ class Track(val nameOfTrack: String, val raceTrack: Array[Array[SquareType]], va
     result(6) = nextCenter.addToXY(-1, 1)
     result(7) = nextCenter.addToXY(0, 1)
     result(8) = nextCenter.addToXY(1, 1)
-
-    result = result.filter(b => b.x >= 0 && b.y >= 0).filter(a => squareAtPos(a).canPassThrough).filter(c => !pathCollides(currentLocation, c))
-
-    result
-
+    
+    result.filter(b => b.x >= 0 && b.y >= 0).filter(a => squareAtPos(a).canPassThrough).filter(c => !pathCollides(currentLocation, c))
   }
 
-  // Gives coordinates of a given players car
+  // Gives coordinates of a given car
   def locationOfCar(playerIndex: Int): Coordinates = {
     var result = new Coordinates(-1, -1)
     for (i <- 0 until this.height) {

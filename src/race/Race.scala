@@ -2,13 +2,14 @@ package race
 
 class Race {
 
-  // sets a placeholder track for when the real one has no been read yet
+  // sets a placeholder track for when the real one has not been read yet
   private var track = new Track("default track", Array[Array[SquareType]](Array(new Obstacle)), Array(new Car(new Driver("default driver"))))
 
   // sets a different track for this race
   def setTrack(trackName: String, cars: Array[String]): Unit = {
     val map = buildMap(IO.readTrack(trackName + ".txt")._2)
     track = new Track(trackName, map, buildCars(cars))
+    nextTurnIndex = scala.util.Random.nextInt(getCars.size)
   }
 
   // Moves the car whose turn it is to the given position and give the turn to the next player
@@ -25,6 +26,7 @@ class Race {
 
   def getCars: Array[Car] = this.track.cars
 
+  // Next car cannot make a legal move
   def noOptions: Boolean = nextMovementOptions.isEmpty
 
   // Keeps track of whose turn it is
@@ -37,11 +39,8 @@ class Race {
   // checks wheater the game is over, that is there is only one uncrashed car left or someone 
   // crossed both the checkpoint and the finish line
   def gameOver: Boolean = {
-
     val potWinner = track.cars.indices.find(a => track.lastMoveWon(a) && track.checkpointPassed(a))
-
     track.cars.filter(!_.isCrashed).size == 1 || potWinner.isDefined
-
   }
   // Returns the possible moves for the player whose turn it is
   def nextMovementOptions = track.moveOptions(nextTurnIndex)
